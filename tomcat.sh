@@ -1,11 +1,35 @@
-dnf install java-21-amazon-corretto -y
+
+#!/bin/bash
+
+# Install Java 21
+dnf install -y java-21-amazon-corretto
+
+# Download Apache Tomcat 11
 wget https://dlcdn.apache.org/tomcat/tomcat-11/v11.0.14/bin/apache-tomcat-11.0.14.tar.gz
+
+# Extract Tomcat
 tar -zxvf apache-tomcat-11.0.14.tar.gz
-sed -i '56  a\<role rolename="manager-gui"/>' apache-tomcat-11.0.14/conf/tomcat-users.xml
-sed -i '57  a\<role rolename="manager-script"/>' apache-tomcat-11.0.14/conf/tomcat-users.xml
-sed -i '58  a\<user username="tomcat" password="root123456" roles="manager-gui, manager-script"/>' apache-tomcat-11.0.14/conf/tomcat-users.xml
-sed -i '59  a\</tomcat-users>' apache-tomcat-11.0.14/conf/tomcat-users.xml
-sed -i '56d' apache-tomcat-11.0.14/conf/tomcat-users.xml
-sed -i '21d' apache-tomcat-11.0.14/webapps/manager/META-INF/context.xml
-sed -i '22d' apache-tomcat-11.0.14/webapps/manager/META-INF/context.xml
+
+# Configure Tomcat users
+sed -i '/<\/tomcat-users>/d' apache-tomcat-11.0.14/conf/tomcat-users.xml
+
+cat >> apache-tomcat-11.0.14/conf/tomcat-users.xml <<'EOF'
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<user username="tomcat" password="root123456" roles="manager-gui,manager-script"/>
+</tomcat-users>
+EOF
+
+# Allow remote access to Tomcat Manager
+sed -i '/<Valve /d' apache-tomcat-11.0.14/webapps/manager/META-INF/context.xml
+
+# Allow remote access to Host Manager
+sed -i '/<Valve /d' apache-tomcat-11.0.14/webapps/host-manager/META-INF/context.xml
+
+# Start Tomcat
 sh apache-tomcat-11.0.14/bin/startup.sh
+
+# Check Java version
+java -version
+
+echo "Tomcat installation completed successfully!"
